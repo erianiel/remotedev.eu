@@ -2,17 +2,20 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useJobs } from "./useJobs";
 import TableFooter from "./TableFooter";
 import type { Job } from "../types";
-import { useSearch } from "@tanstack/react-router";
 
 function Table() {
-  const { page } = useSearch({ from: "/" });
-  const { jobs, error, isLoading } = useJobs(page);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const { jobs, error, isLoading } = useJobs(pagination);
   const columnHelper = createColumnHelper<Job>();
   const columns = useMemo(
     () => [
@@ -47,7 +50,13 @@ function Table() {
   const table = useReactTable<Job>({
     data: jobs ?? [],
     columns,
+    manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
+    state: {
+      pagination,
+    },
   });
 
   return (
@@ -88,7 +97,10 @@ function Table() {
             </tr>
           ))}
         </tbody>
-        <TableFooter />
+        <TableFooter
+          pageSize={table.getState().pagination.pageSize}
+          setPageSize={table.setPageSize}
+        />
       </table>
     </div>
   );

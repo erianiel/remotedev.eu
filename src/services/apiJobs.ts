@@ -1,10 +1,9 @@
+import type { PaginationState } from "@tanstack/react-table";
 import supabase from "./supabase";
 
-const JOBS_PER_PAGE = 10;
-
-export async function getJobs(page: number = 1) {
-  const from = (page - 1) * JOBS_PER_PAGE;
-  const to = from + JOBS_PER_PAGE - 1;
+export async function getJobs(options: PaginationState) {
+  const from = options.pageIndex * options.pageSize;
+  const to = from + options.pageSize;
 
   const { data, error } = await supabase
     .from("jobs")

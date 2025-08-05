@@ -1,6 +1,6 @@
 import { useSearch } from "@tanstack/react-router";
 
-function TableFooter() {
+function TableFooter({ pageSize, setPageSize }) {
   const { page } = useSearch({ from: "/" });
 
   return (
@@ -15,10 +15,15 @@ function TableFooter() {
             <div className="flex gap-6">
               <div className="flex gap-2 items-center">
                 <p>Lines per page</p>
-                <select>
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                  <option value="50">50</option>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                >
+                  {[10, 20, 50].map((pageSize) => (
+                    <option key={pageSize} value={pageSize}>
+                      {pageSize}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex items-center gap-2">
