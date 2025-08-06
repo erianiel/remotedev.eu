@@ -1,15 +1,36 @@
-import { useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useCallback } from "react";
 
-function TableFooter({ pageSize, setPageSize }) {
+type TableFooterProps = {
+  pageSize: number;
+  pageCount: number;
+  rowCount: number;
+};
+
+function TableFooter({ pageSize, pageCount, rowCount }: TableFooterProps) {
   const { page } = useSearch({ from: "/" });
+  const navigate = useNavigate({ from: "/" });
+
+  const handlePageSizeChange = useCallback(
+    (newPageSize: number) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          pageSize: newPageSize,
+          page: 1,
+        }),
+      });
+    },
+    [navigate]
+  );
 
   return (
     <tfoot>
       <tr className="bg-stone-900 border-slate-100 text-sm text-white">
         <td colSpan={100} className="p-4">
           <div className="flex justify-between items-center w-full">
-            <p>
-              Total <span className="font-bold">10</span>
+            <p className="font-normal">
+              <span className="font-bold">{rowCount}</span> jobs found
             </p>
 
             <div className="flex gap-6">
@@ -17,7 +38,7 @@ function TableFooter({ pageSize, setPageSize }) {
                 <p>Lines per page</p>
                 <select
                   value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                 >
                   {[10, 20, 50].map((pageSize) => (
                     <option key={pageSize} value={pageSize}>
@@ -28,7 +49,9 @@ function TableFooter({ pageSize, setPageSize }) {
               </div>
               <div className="flex items-center gap-2">
                 <button className="cursor-pointer">Previous</button>
-                <span>Page {page} of 10</span>
+                <span>
+                  Page {page} of {pageCount}
+                </span>
                 <button>Next</button>
               </div>
             </div>

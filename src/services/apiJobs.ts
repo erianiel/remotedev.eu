@@ -18,3 +18,16 @@ export async function getJobs(options: PaginationState) {
 
   return data;
 }
+
+export async function getJobsCount() {
+  const { count, error } = await supabase
+    .from("jobs")
+    .select("*", { count: "exact" });
+
+  if (error) {
+    console.error("Error fetching job count:", error);
+    throw error;
+  }
+
+  return count;
+}

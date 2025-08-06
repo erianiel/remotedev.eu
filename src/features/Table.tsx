@@ -5,17 +5,30 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useJobs } from "./useJobs";
 import TableFooter from "./TableFooter";
 import type { Job } from "../types";
+import { useJobsCount } from "./useJobsCount";
+import { useSearch } from "@tanstack/react-router";
 
 function Table() {
+  const { pageSize } = useSearch({ from: "/" });
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: pageSize ?? 10,
   });
+
+  useEffect(() => {
+    setPagination((prev) => ({
+      ...prev,
+      pageSize,
+    }));
+  }, [pageSize]);
+
   const { jobs, error, isLoading } = useJobs(pagination);
+  const { jobsCount } = useJobsCount();
+
   const columnHelper = createColumnHelper<Job>();
   const columns = useMemo(
     () => [
@@ -54,6 +67,7 @@ function Table() {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
+    rowCount: jobsCount ?? 0,
     state: {
       pagination,
     },
@@ -99,7 +113,8 @@ function Table() {
         </tbody>
         <TableFooter
           pageSize={table.getState().pagination.pageSize}
-          setPageSize={table.setPageSize}
+          pageCount={table.getPageCount()}
+          rowCount={table.getRowCount()}
         />
       </table>
     </div>
