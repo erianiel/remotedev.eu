@@ -3,4 +3,5 @@ export type Job = {
   url: string;
   company?: string;
   location?: string;
+  created_at?: Date;
 };

@@ -1,14 +1,36 @@
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
+import Button from "../ui/Button";
 
 type TableFooterProps = {
   pageSize: number;
   pageCount: number;
   rowCount: number;
+  pageIndex: number;
+  onClickFirstPage?: () => void;
+  shouldDisableFirstPageButton?: boolean;
+  onClickPreviousPage?: () => void;
+  shouldDisablePreviousPageButton?: boolean;
+  onClickNextPage?: () => void;
+  shouldDisableNextPageButton?: boolean;
+  onClickLastPage?: () => void;
+  shouldDisableLastPageButton?: boolean;
 };
 
-function TableFooter({ pageSize, pageCount, rowCount }: TableFooterProps) {
-  const { page } = useSearch({ from: "/" });
+function TableFooter({
+  pageSize,
+  pageCount,
+  rowCount,
+  pageIndex,
+  onClickFirstPage,
+  shouldDisableFirstPageButton,
+  onClickPreviousPage,
+  shouldDisablePreviousPageButton,
+  onClickNextPage,
+  shouldDisableNextPageButton,
+  onClickLastPage,
+  shouldDisableLastPageButton,
+}: TableFooterProps) {
   const navigate = useNavigate({ from: "/" });
 
   const handlePageSizeChange = useCallback(
@@ -17,7 +39,6 @@ function TableFooter({ pageSize, pageCount, rowCount }: TableFooterProps) {
         search: (prev) => ({
           ...prev,
           pageSize: newPageSize,
-          page: 1,
         }),
       });
     },
@@ -26,19 +47,20 @@ function TableFooter({ pageSize, pageCount, rowCount }: TableFooterProps) {
 
   return (
     <tfoot>
-      <tr className="bg-stone-900 border-slate-100 text-sm text-white">
+      <tr className="bg-stone-900 border-slate-100 text-xs sm:text-sm text-white">
         <td colSpan={100} className="p-4">
           <div className="flex justify-between items-center w-full">
-            <p className="font-normal">
+            <p className="font-normal hidden sm:block">
               <span className="font-bold">{rowCount}</span> jobs found
             </p>
 
-            <div className="flex gap-6">
+            <div className="flex gap-6 justify-between items-center w-full sm:w-auto">
               <div className="flex gap-2 items-center">
-                <p>Lines per page</p>
+                <p>Show</p>
                 <select
                   value={pageSize}
                   onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="block h-6 cursor-pointer rounded-md border border-slate-100 bg-stone-800 px-1 text-zinc-50 hover:border-amber-300 focus:border-amber-300 focus:ring-amber-300 focus:ring-1 focus:outline-none"
                 >
                   {[10, 20, 50].map((pageSize) => (
                     <option key={pageSize} value={pageSize}>
@@ -48,11 +70,34 @@ function TableFooter({ pageSize, pageCount, rowCount }: TableFooterProps) {
                 </select>
               </div>
               <div className="flex items-center gap-2">
-                <button className="cursor-pointer">Previous</button>
-                <span>
-                  Page {page} of {pageCount}
-                </span>
-                <button>Next</button>
+                <Button
+                  onClick={onClickFirstPage}
+                  disabled={shouldDisableFirstPageButton}
+                >
+                  {"<<"}
+                </Button>
+                <Button
+                  onClick={onClickPreviousPage}
+                  disabled={shouldDisablePreviousPageButton}
+                >
+                  {"<"}
+                </Button>
+                <p>
+                  Page <span className="text-amber-300">{pageIndex + 1}</span>{" "}
+                  of {pageCount}
+                </p>
+                <Button
+                  onClick={onClickNextPage}
+                  disabled={shouldDisableNextPageButton}
+                >
+                  {">"}
+                </Button>
+                <Button
+                  onClick={onClickLastPage}
+                  disabled={shouldDisableLastPageButton}
+                >
+                  {">>"}
+                </Button>
               </div>
             </div>
           </div>
