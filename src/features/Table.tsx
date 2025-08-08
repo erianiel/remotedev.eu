@@ -4,20 +4,31 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
+  type SortingState,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useJobs } from "./useJobs";
+import { useJobs } from "../hooks/useJobs";
 import TableFooter from "./TableFooter";
 import type { Job } from "../types";
-import { useJobsCount } from "./useJobsCount";
-import { useSearch } from "@tanstack/react-router";
+import { useJobsCount } from "../hooks/useJobsCount";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 function Table() {
-  const { pageSize } = useSearch({ from: "/" });
+  const { pageSize, sort } = useSearch({ from: "/" });
+  const navigate = useNavigate({ from: "/" });
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: pageSize ?? 10,
+  });
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    if (!sort) {
+      return [{ id: "created_at", desc: true }];
+    }
+
+    const [sortBy, sortDir] = sort.split(".");
+    return [{ id: sortBy, desc: sortDir === "desc" }];
   });
 
   useEffect(() => {
@@ -27,11 +38,27 @@ function Table() {
     }));
   }, [pageSize]);
 
-  const { jobs, error, isLoading } = useJobs(pagination);
+  const { jobs, error, isLoading } = useJobs(pagination, sorting);
   const { jobsCount } = useJobsCount();
   const isMobile = useIsMobile(768);
-  console.log(isMobile);
   const columnHelper = createColumnHelper<Job>();
+
+  const toggleSort = () => {
+    setSorting((prev) => {
+      const current = prev.find((s) => s.id === "created_at");
+      const newDir = current?.desc === false ? true : false;
+
+      navigate({
+        search: (prevSearch) => ({
+          ...prevSearch,
+          sort: newDir ? "created_at.desc" : "created_at.asc",
+        }),
+      });
+
+      return [{ id: "created_at", desc: newDir }];
+    });
+  };
+
   const columns = useMemo(
     () => [
       columnHelper.accessor("title", {
@@ -68,7 +95,25 @@ function Table() {
       ...(!isMobile
         ? [
             columnHelper.accessor("created_at", {
-              header: () => <span>Date</span>,
+              header: ({ column }) => {
+                const isSorted = column.getIsSorted();
+                console.log(isSorted);
+                return (
+                  <div className="flex items-center gap-1">
+                    <span>Date</span>
+                    <button
+                      onClick={toggleSort}
+                      className="flex items-center gap-1"
+                    >
+                      {isSorted === "asc" ? (
+                        <ChevronUp className="h-3 w-3 font-bold" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3 font-bold" />
+                      )}
+                    </button>
+                  </div>
+                );
+              },
               cell: (info) => {
                 return new Date(info.getValue() || "")
                   .toLocaleDateString()
@@ -78,26 +123,29 @@ function Table() {
           ]
         : []),
     ],
-    [columnHelper, isMobile]
+    [columnHelper, isMobile, toggleSort]
   );
 
   const table = useReactTable<Job>({
     data: jobs ?? [],
     columns,
     manualPagination: true,
+    manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
+    onSortingChange: setSorting,
     rowCount: jobsCount ?? 0,
     state: {
       pagination,
+      sorting,
     },
   });
 
   return (
     <div className="rounded-lg overflow-hidden border border-stone-900 shadow-md">
       {isLoading && <h3>Loading...</h3>}
-      {error && <h3>An error has occurred!n</h3>}
+      {error && <h3>An error has occurred!</h3>}
       <table className="table-fixed w-full border-collapse">
         <thead className="bg-amber-400">
           {table.getHeaderGroups().map((headerGroup) => {

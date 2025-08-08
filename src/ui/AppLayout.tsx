@@ -2,7 +2,7 @@ import Table from "../features/Table";
 
 function AppLayout() {
   return (
-    <div className="h-full p-8 bg-stone-50 flex flex-col justify-center gap-9">
+    <div className="h-full p-8 flex flex-col justify-center gap-9">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl text-zinc-700 font-semibold">
           Remote frontend jobs

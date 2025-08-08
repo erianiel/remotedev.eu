@@ -1,15 +1,15 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getJobs } from "../services/apiJobs";
-import type { PaginationState } from "@tanstack/react-table";
+import type { PaginationState, SortingState } from "@tanstack/react-table";
 
-export function useJobs(pagination: PaginationState) {
+export function useJobs(pagination: PaginationState, sorting: SortingState) {
   const {
     isLoading,
     data: jobs,
     error,
   } = useQuery({
-    queryKey: ["jobs", pagination],
-    queryFn: () => getJobs(pagination),
+    queryKey: ["jobs", pagination, sorting],
+    queryFn: () => getJobs({ pagination, sorting }),
     placeholderData: keepPreviousData,
   });
 

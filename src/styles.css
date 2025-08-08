@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
-body {
+hotm,
+body,
+#root {
+  @apply bg-stone-50;
   font-family: "Courier Prime", monospace;
 }

@@ -1,14 +1,19 @@
-import type { PaginationState } from "@tanstack/react-table";
+import type { PaginationState, SortingState } from "@tanstack/react-table";
 import supabase from "./supabase";
 
-export async function getJobs(options: PaginationState) {
-  const from = options.pageIndex * options.pageSize;
-  const to = from + options.pageSize;
+export async function getJobs(options: {
+  pagination: PaginationState;
+  sorting: SortingState;
+}) {
+  const from = options.pagination.pageIndex * options.pagination.pageSize;
+  const to = from + options.pagination.pageSize - 1;
 
   const { data, error } = await supabase
     .from("jobs")
     .select("*", { count: "exact" })
-    .order("created_at", { ascending: false })
+    .order("created_at", {
+      ascending: options.sorting[0]?.desc === false,
+    })
     .range(from, to);
 
   if (error) {
