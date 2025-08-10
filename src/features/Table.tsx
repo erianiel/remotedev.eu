@@ -6,7 +6,7 @@ import {
   useReactTable,
   type SortingState,
 } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useJobs } from "../hooks/useJobs";
 import TableFooter from "./TableFooter";
 import type { Job } from "../types";
@@ -43,7 +43,7 @@ function Table() {
   const isMobile = useIsMobile(768);
   const columnHelper = createColumnHelper<Job>();
 
-  const toggleSort = () => {
+  const toggleSort = useCallback(() => {
     setSorting((prev) => {
       const current = prev.find((s) => s.id === "created_at");
       const newDir = current?.desc === false ? true : false;
@@ -57,7 +57,7 @@ function Table() {
 
       return [{ id: "created_at", desc: newDir }];
     });
-  };
+  }, [navigate]);
 
   const columns = useMemo(
     () => [
