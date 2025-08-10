@@ -5,10 +5,10 @@ function AppLayout() {
     <div className="h-full p-8 flex flex-col justify-center gap-9">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl text-zinc-700 font-semibold">
-          Remote frontend jobs
+          Remote dev jobs in Europe
         </h1>
         <h2 className="text-large text-zinc-500 font-normal">
-          Find your remote dev job.
+          Updated frequently. No spam. No distractions.
         </h2>
       </div>
       <Table />
