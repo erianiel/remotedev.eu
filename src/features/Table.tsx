@@ -4,6 +4,7 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
+  type RowData,
   type SortingState,
 } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -14,6 +15,13 @@ import { useJobsCount } from "../hooks/useJobsCount";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { ChevronDown, ChevronUp } from "lucide-react";
+
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string;
+  }
+}
 
 function Table() {
   const { pageSize, sort } = useSearch({ from: "/" });
@@ -77,7 +85,7 @@ function Table() {
           );
         },
         meta: {
-          className: isMobile && "truncate whitespace-nowrap",
+          className: isMobile ? "truncate whitespace-nowrap" : "",
         },
       }),
       ...(!isMobile
