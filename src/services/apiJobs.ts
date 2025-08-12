@@ -1,38 +1,30 @@
 import type { PaginationState, SortingState } from "@tanstack/react-table";
-import supabase from "./supabase";
 
 export async function getJobs(options: {
   pagination: PaginationState;
   sorting: SortingState;
+  signal: AbortSignal;
 }) {
-  const from = options.pagination.pageIndex * options.pagination.pageSize;
-  const to = from + options.pagination.pageSize - 1;
+  const page = options.pagination.pageIndex + 1;
+  const pageSize = options.pagination.pageSize;
+  const sort = options.sorting.length
+    ? `${options.sorting[0].id}.${options.sorting[0].desc ? "desc" : "asc"}`
+    : "created_at.desc"; // Default sort
 
-  const { data, error } = await supabase
-    .from("jobs")
-    .select("*", { count: "exact" })
-    .order("created_at", {
-      ascending: options.sorting[0]?.desc === false,
-    })
-    .range(from, to);
+  const response = await fetch(
+    `https://lsonohvayyootvjagxvw.supabase.co/functions/v1/jobs?page=${page}&pageSize=${pageSize}&sort=${sort}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal: options.signal,
+    }
+  );
 
-  if (error) {
-    console.error("Error fetching job:", error);
-    throw error;
+  if (!response.ok) {
+    throw new Error("Failed to fetch jobs");
   }
 
-  return data;
-}
-
-export async function getJobsCount() {
-  const { count, error } = await supabase
-    .from("jobs")
-    .select("*", { count: "exact" });
-
-  if (error) {
-    console.error("Error fetching job count:", error);
-    throw error;
-  }
-
-  return count;
+  return response.json();
 }
