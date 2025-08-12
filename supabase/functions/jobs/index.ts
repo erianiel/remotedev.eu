@@ -5,6 +5,8 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "https://remotedev.eu",
+  "https://erianiel.github.io",
+  "https://erianiel.github.io/remotedev.eu",
 ] as const;
 const DEFAULT_PAGE_SIZE = 10;
 const ALLOWED_PAGE_SIZES = [10, 20, 50];
