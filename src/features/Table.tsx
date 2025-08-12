@@ -11,7 +11,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useJobs } from "../hooks/useJobs";
 import TableFooter from "./TableFooter";
 import type { Job } from "../types";
-import { useJobsCount } from "../hooks/useJobsCount";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -42,12 +41,12 @@ function Table() {
   useEffect(() => {
     setPagination((prev) => ({
       ...prev,
+      pageIndex: 0,
       pageSize,
     }));
   }, [pageSize]);
 
   const { jobs, error, isLoading } = useJobs(pagination, sorting);
-  const { jobsCount } = useJobsCount();
   const isMobile = useIsMobile(768);
   const columnHelper = createColumnHelper<Job>();
 
@@ -135,7 +134,7 @@ function Table() {
   );
 
   const table = useReactTable<Job>({
-    data: jobs ?? [],
+    data: jobs?.data ?? [],
     columns,
     manualPagination: true,
     manualSorting: true,
@@ -143,7 +142,7 @@ function Table() {
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
-    rowCount: jobsCount ?? 0,
+    rowCount: jobs?.meta.total ?? 0,
     state: {
       pagination,
       sorting,
@@ -152,61 +151,67 @@ function Table() {
 
   return (
     <div className="rounded-lg overflow-hidden border border-stone-900 shadow-md">
-      {isLoading && <h3>Loading...</h3>}
-      {error && <h3>An error has occurred!</h3>}
-      <table className="table-fixed w-full border-collapse">
-        <thead className="bg-amber-400">
-          {table.getHeaderGroups().map((headerGroup) => {
-            return (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className={`text-sm border-b border-slate-100 px-4 py-2 text-left font-semibold text-gray-700 ${
-                      isMobile ? "w-1/2" : "w-1/4"
+      {isLoading && <h3 className="p-6">Loading...</h3>}
+      {error && (
+        <h3 className="p-6 text-rose-500 font-medium">
+          An error has occurred!
+        </h3>
+      )}
+      {!isLoading && !error && (
+        <table className="table-fixed w-full border-collapse">
+          <thead className="bg-amber-400">
+            {table.getHeaderGroups().map((headerGroup) => {
+              return (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className={`text-sm border-b border-slate-100 px-4 py-2 text-left font-semibold text-gray-700 ${
+                        isMobile ? "w-1/2" : "w-1/4"
+                      }`}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              );
+            })}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id} className="h-14 hover:bg-amber-100">
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className={`border-b border-gray-200 py-2 px-4 text-gray-800 break-words text-xs sm:text-sm ${
+                      cell.column.columnDef.meta?.className || ""
                     }`}
                   >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
                 ))}
               </tr>
-            );
-          })}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="h-14 hover:bg-amber-100">
-              {row.getVisibleCells().map((cell) => (
-                <td
-                  key={cell.id}
-                  className={`border-b border-gray-200 py-2 px-4 text-gray-800 break-words text-xs sm:text-sm ${
-                    cell.column.columnDef.meta?.className || ""
-                  }`}
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-        <TableFooter
-          pageSize={table.getState().pagination.pageSize}
-          pageCount={table.getPageCount()}
-          rowCount={table.getRowCount()}
-          pageIndex={table.getState().pagination.pageIndex}
-          onClickFirstPage={() => table.firstPage()}
-          shouldDisableFirstPageButton={!table.getCanPreviousPage()}
-          onClickPreviousPage={() => table.previousPage()}
-          shouldDisablePreviousPageButton={!table.getCanPreviousPage()}
-          onClickNextPage={() => table.nextPage()}
-          shouldDisableNextPageButton={!table.getCanNextPage()}
-          onClickLastPage={() => table.lastPage()}
-          shouldDisableLastPageButton={!table.getCanNextPage()}
-        />
-      </table>
+            ))}
+          </tbody>
+          <TableFooter
+            pageSize={table.getState().pagination.pageSize}
+            pageCount={table.getPageCount()}
+            rowCount={table.getRowCount()}
+            pageIndex={table.getState().pagination.pageIndex}
+            onClickFirstPage={() => table.firstPage()}
+            shouldDisableFirstPageButton={!table.getCanPreviousPage()}
+            onClickPreviousPage={() => table.previousPage()}
+            shouldDisablePreviousPageButton={!table.getCanPreviousPage()}
+            onClickNextPage={() => table.nextPage()}
+            shouldDisableNextPageButton={!table.getCanNextPage()}
+            onClickLastPage={() => table.lastPage()}
+            shouldDisableLastPageButton={!table.getCanNextPage()}
+          />
+        </table>
+      )}
     </div>
   );
 }

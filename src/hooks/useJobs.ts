@@ -9,7 +9,7 @@ export function useJobs(pagination: PaginationState, sorting: SortingState) {
     error,
   } = useQuery({
     queryKey: ["jobs", pagination, sorting],
-    queryFn: () => getJobs({ pagination, sorting }),
+    queryFn: ({ signal }) => getJobs({ pagination, sorting, signal }),
     placeholderData: keepPreviousData,
   });
 

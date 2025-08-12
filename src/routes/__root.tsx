@@ -9,6 +9,6 @@ export const Route = createRootRoute({
     </>
   ),
   notFoundComponent: () => (
-    <div className="text-xl font-bold">404 Page not found</div>
+    <div className="text-xl text-gray-600 font-bold">404 Page not found</div>
   ),
 });
