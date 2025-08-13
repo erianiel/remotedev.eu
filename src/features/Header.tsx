@@ -1,5 +1,5 @@
 import { useIsMobile } from "../hooks/useIsMobile";
-import KoFiButton from "./KoFiButton";
+import KofiButton from "./KofiButton";
 
 function Header() {
   const isMobile = useIsMobile();
@@ -15,7 +15,7 @@ function Header() {
           Updated frequently. No spam. No distractions.
         </h2>
       </div>
-      <KoFiButton />
+      <KofiButton />
     </div>
   );
 }
