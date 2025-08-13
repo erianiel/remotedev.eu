@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 import Button from "../ui/Button";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 type TableFooterProps = {
   pageSize: number;
@@ -32,6 +33,7 @@ function TableFooter({
   shouldDisableLastPageButton,
 }: TableFooterProps) {
   const navigate = useNavigate({ from: "/" });
+  const isMobile = useIsMobile();
 
   const handlePageSizeChange = useCallback(
     (newPageSize: number) => {
@@ -43,6 +45,10 @@ function TableFooter({
       });
     },
     [navigate]
+  );
+
+  const renderPaginationIndex = () => (
+    <span className="text-amber-300">{pageIndex + 1}</span>
   );
 
   return (
@@ -82,10 +88,19 @@ function TableFooter({
                 >
                   {"<"}
                 </Button>
+
                 <p>
-                  Page <span className="text-amber-300">{pageIndex + 1}</span>{" "}
-                  of {pageCount}
+                  {isMobile ? (
+                    <>
+                      {renderPaginationIndex()} / {pageCount}
+                    </>
+                  ) : (
+                    <>
+                      Page {renderPaginationIndex()} of {pageCount}
+                    </>
+                  )}
                 </p>
+
                 <Button
                   onClick={onClickNextPage}
                   disabled={shouldDisableNextPageButton}
