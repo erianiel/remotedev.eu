@@ -85,7 +85,7 @@ function Table() {
           );
         },
         meta: {
-          className: isMobile ? "truncate whitespace-nowrap" : "",
+          className: isMobile ? "w-[70%] truncate whitespace-nowrap" : "w-2/4",
         },
       }),
       ...(!isMobile
@@ -93,12 +93,18 @@ function Table() {
             columnHelper.accessor("company", {
               header: () => <span>Company</span>,
               cell: (info) => info.getValue(),
+              meta: {
+                className: "w-[22%]",
+              },
             }),
           ]
         : []),
       columnHelper.accessor("location", {
         header: () => <span>Location</span>,
         cell: (info) => info.getValue(),
+        meta: {
+          className: `${isMobile ? "w-[30%]" : "w-[22%]"}`,
+        },
       }),
       ...(!isMobile
         ? [
@@ -126,6 +132,9 @@ function Table() {
                 return new Date(info.getValue() || "")
                   .toLocaleDateString()
                   .split("T")[0];
+              },
+              meta: {
+                className: "md:w-[8rem] lg:w-[9rem]",
               },
             }),
           ]
