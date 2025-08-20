@@ -99,9 +99,22 @@ function Table() {
             }),
           ]
         : []),
-      columnHelper.accessor("location", {
-        header: () => <span>Location</span>,
-        cell: (info) => info.getValue(),
+      columnHelper.accessor("country", {
+        header: () => <span>Country</span>,
+        cell: (info) => {
+          const country = info.getValue();
+          const location = info.row.original.location;
+
+          return (
+            <div className="relative group inline-block">
+              <p className="cursor-help">{country}</p>
+
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded-md px-2 py-1 whitespace-nowrap shadow-lg">
+                {location}
+              </div>
+            </div>
+          );
+        },
         meta: {
           className: `${isMobile ? "w-[30%]" : "w-[22%]"}`,
         },

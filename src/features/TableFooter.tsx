@@ -57,7 +57,8 @@ function TableFooter({
         <td colSpan={100} className="p-4">
           <div className="flex justify-between items-center w-full">
             <p className="font-normal hidden sm:block">
-              <span className="font-bold">{rowCount}</span> jobs found
+              <span className="font-bold">{rowCount}</span> jobs{" "}
+              <span className="text-xs text-gray-400">from past 2 weeks</span>
             </p>
 
             <div className="flex gap-6 justify-between items-center w-full sm:w-auto">

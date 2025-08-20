@@ -18,6 +18,7 @@ type Job = {
   title: string;
   url: string;
   company?: string;
+  country?: string;
   location?: string;
   created_at: string;
 };
@@ -119,10 +120,16 @@ Deno.serve(async (req) => {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 15);
+
     // Fetch data from Supabase
     const { data, error, count } = await supabase
       .from("jobs")
-      .select("title,url,company,location,created_at", { count: "exact" })
+      .select("title,url,company,country,location,created_at", {
+        count: "exact",
+      })
+      .gte("created_at", twoWeeksAgo.toISOString())
       .order(sortBy, { ascending: sortDir === "asc" })
       .range(from, to);
 
