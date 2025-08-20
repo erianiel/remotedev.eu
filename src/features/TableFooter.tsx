@@ -76,12 +76,14 @@ function TableFooter({
                 </select>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  onClick={onClickFirstPage}
-                  disabled={shouldDisableFirstPageButton}
-                >
-                  {"<<"}
-                </Button>
+                {!isMobile && (
+                  <Button
+                    onClick={onClickFirstPage}
+                    disabled={shouldDisableFirstPageButton}
+                  >
+                    {"<<"}
+                  </Button>
+                )}
                 <Button
                   onClick={onClickPreviousPage}
                   disabled={shouldDisablePreviousPageButton}
@@ -107,12 +109,14 @@ function TableFooter({
                 >
                   {">"}
                 </Button>
-                <Button
-                  onClick={onClickLastPage}
-                  disabled={shouldDisableLastPageButton}
-                >
-                  {">>"}
-                </Button>
+                {!isMobile && (
+                  <Button
+                    onClick={onClickLastPage}
+                    disabled={shouldDisableLastPageButton}
+                  >
+                    {">>"}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
