@@ -94,7 +94,7 @@ function Table() {
               header: () => <span>Company</span>,
               cell: (info) => info.getValue(),
               meta: {
-                className: "w-[22%]",
+                className: "w-[25%]",
               },
             }),
           ]
