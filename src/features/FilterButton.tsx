@@ -13,7 +13,7 @@ function FilterButton({
 }: FilterButtonProps) {
   return (
     <button
-      className={`${isOpenMenu ? "border-stone-400" : "border-stone-900"} rounded-lg py-1 px-2 w-32 border shadow-sm text-sm cursor-pointer active:shadow-md`}
+      className={`${isOpenMenu ? "border-stone-400" : "border-stone-900"} rounded-lg py-1 px-2 w-52 border shadow-sm text-sm cursor-pointer active:shadow-md`}
       onClick={onClick}
     >
       <div className="flex justify-between items-center gap-2">
