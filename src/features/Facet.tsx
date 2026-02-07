@@ -15,7 +15,10 @@ type FacetType = {
 };
 
 type OpenType = {
-  children: React.ReactNode;
+  children: React.ReactElement<{
+    onClick?: () => void;
+    isOpenMenu?: boolean;
+  }>;
   opens?: string;
 };
 
@@ -23,7 +26,7 @@ type FacetContextType = {
   openName: string;
   toggle: (name: string) => void;
   close: () => void;
-  wrapperRef: React.RefObject<HTMLDivElement>;
+  wrapperRef: React.RefObject<HTMLDivElement | null>;
 };
 
 const FacetContext = createContext<FacetContextType | undefined>(undefined);
@@ -61,19 +64,20 @@ function Open({ children, opens: opensMenuName }: OpenType) {
   const { openName, toggle } = ctx;
 
   const isOpen = openName === (opensMenuName ?? "");
+  const originalOnClick = children.props.onClick;
 
-  const handleClick = () => toggle(opensMenuName ?? "");
+  const handleClick = () => {
+    if (originalOnClick) originalOnClick();
+    toggle(opensMenuName ?? "");
+  };
 
-  return cloneElement(children as React.ReactElement, {
+  return cloneElement(children, {
     onClick: handleClick,
     isOpenMenu: isOpen,
-    "aria-haspopup": "menu",
-    "aria-expanded": isOpen,
-    type: "button",
   });
 }
 
-function Menu({ items, name }: FilterMenuType) {
+function Menu({ items, name, isLoading }: FilterMenuType) {
   const ctx = useContext(FacetContext);
   if (!ctx) throw new Error("Facet.Menu must be used within <Facet>");
   const { openName } = ctx;
@@ -89,11 +93,13 @@ function Menu({ items, name }: FilterMenuType) {
         <SearchBar className="w-full text-xs" />
       </div>
       <ul className="list-none max-h-64 overflow-auto">
-        {items?.map((item) => (
-          <li key={item.id} className="bg-stone-50 hover:bg-amber-50">
-            <Checkbox label={item.label} />
-          </li>
-        ))}
+        {isLoading && <p>Loading...</p>}
+        {!isLoading &&
+          items?.map((item) => (
+            <li key={item.id} className="bg-stone-50 hover:bg-amber-50">
+              <Checkbox label={item.label} />
+            </li>
+          ))}
       </ul>
     </div>
   );

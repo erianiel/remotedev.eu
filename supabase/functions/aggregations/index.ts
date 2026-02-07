@@ -8,7 +8,7 @@ const ALLOWED_ORIGINS = [
   "https://erianiel.github.io",
   "https://erianiel.github.io/remotedev.eu",
 ] as const;
-const DEFAULT_LIMIT = 30;
+const DEFAULT_LIMIT = 100;
 const FILTER_WHITELIST = new Set(["company", "country"]);
 
 // Type definitions
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
     const limit = Number(url.searchParams.get("limit") || DEFAULT_LIMIT);
 
     // Validate limit
-    if (Number.isNaN(limit) || limit < 1 || limit > 100) {
+    if (Number.isNaN(limit) || limit < 1 || limit > 300) {
       return createJsonResponse({ error: "Invalid page size" }, 400, origin);
     }
 
@@ -100,14 +100,14 @@ Deno.serve(async (req) => {
 
     let query = supabase
       .from(table)
-      .select(filter, { count: "exact" })
+      .select("id,label", { count: "exact" })
       .gte("created_at", twoWeeksAgo.toISOString())
-      .order(filter, { ascending: true })
+      .order("label", { ascending: true })
       .limit(limit);
 
     // Optional case-insensitive substring search
     if (q && q.trim() !== "") {
-      query = query.ilike(filter, `%${q.trim()}%`);
+      query = query.ilike("label", `%${q.trim()}%`);
     }
 
     const { data, error, count } = await query;

@@ -1,27 +1,41 @@
+import { useAggregations } from "../hooks/useAggregations";
 import Facet from "./Facet";
 import FilterButton from "./FilterButton";
 
-const countryItems = Array.from({ length: 100 }).map((_, i) => ({
-  id: `${i}`,
-  label: `Item ${i}`,
-  value: `${i}`,
-}));
-
 function FilterBar() {
+  const {
+    aggregations: countryData,
+    isLoading: countryLoading,
+    refetch: refetchCountry,
+  } = useAggregations("country");
+  const {
+    aggregations: companyData,
+    isLoading: companyLoading,
+    refetch: refetchCompany,
+  } = useAggregations("company");
+
   return (
     <div className="self-end flex gap-2">
       <Facet>
         <Facet.Open opens="country-filter">
-          <FilterButton>Country</FilterButton>
+          <FilterButton onClick={() => refetchCountry()}>Country</FilterButton>
         </Facet.Open>
-        <Facet.Menu items={countryItems} name="country-filter" />
+        <Facet.Menu
+          isLoading={countryLoading}
+          items={countryData?.data}
+          name="country-filter"
+        />
       </Facet>
 
       <Facet>
         <Facet.Open opens="company-filter">
-          <FilterButton>Company</FilterButton>
+          <FilterButton onClick={() => refetchCompany()}>Company</FilterButton>
         </Facet.Open>
-        <Facet.Menu name="company-filter" />
+        <Facet.Menu
+          isLoading={companyLoading}
+          items={companyData?.data}
+          name="company-filter"
+        />
       </Facet>
     </div>
   );

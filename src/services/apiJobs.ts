@@ -32,3 +32,21 @@ export async function getJobs(options: {
 
   return response.json();
 }
+
+export async function getAggregations(options: { filter: string; q?: string }) {
+  const baseUrl = new URL(`${SUPABASE_URL}/functions/v1/aggregations`);
+  baseUrl.searchParams.set("filter", String(options.filter));
+
+  if (options.q) {
+    baseUrl.searchParams.set("q", String(options.q));
+  }
+
+  const response = await fetch(baseUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  return response.json();
+}

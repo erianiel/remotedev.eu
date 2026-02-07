@@ -16,4 +16,5 @@ export type FilterMenuItem = {
 export type FilterMenuType = {
   items?: FilterMenuItem[];
   name: string;
+  isLoading: boolean;
 };
