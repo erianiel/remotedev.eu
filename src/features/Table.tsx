@@ -184,7 +184,7 @@ function Table() {
         <table className="table-fixed w-full border-collapse">
           <thead className="bg-amber-400">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableHeader headerGroup={headerGroup} />
+              <TableHeader key={headerGroup.id} headerGroup={headerGroup} />
             ))}
           </thead>
           <tbody>
