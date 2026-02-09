@@ -25,23 +25,50 @@ function isLinkedInHost(hostname: string) {
   );
 }
 
+function extractLinkedInJobId(pathname: string) {
+  const match = pathname.match(/\/jobs\/view\/(\d+)/);
+  return match?.[1];
+}
+
 function toCanonicalLinkedInJobUrl(parsed: URL) {
-  const match = parsed.pathname.match(/\/jobs\/view\/(\d+)/);
-  if (!match) {
+  const jobId = extractLinkedInJobId(parsed.pathname);
+  if (!jobId) {
     return parsed.toString();
   }
 
-  return `https://www.linkedin.com/jobs/view/${match[1]}/`;
+  return `https://www.linkedin.com/jobs/view/${jobId}/`;
+}
+
+function toLinkedInIosSafeUrl(parsed: URL) {
+  const jobId = extractLinkedInJobId(parsed.pathname);
+  if (!jobId) {
+    return toCanonicalLinkedInJobUrl(parsed);
+  }
+
+  // Use guest job endpoint on iOS to avoid LinkedIn app deep-link render errors.
+  return `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${jobId}`;
 }
 
 export function withUtmSource(url: string, source = UTM_SOURCE) {
+  return withOutboundTracking(url, { source });
+}
+
+export function withOutboundTracking(
+  url: string,
+  options?: { source?: string; iosSafeLinkedIn?: boolean },
+) {
   try {
     const parsed = new URL(normalizeExternalUrl(url));
+    const source = options?.source ?? UTM_SOURCE;
+    const iosSafeLinkedIn = options?.iosSafeLinkedIn ?? false;
 
     // Keep LinkedIn links unchanged because iOS universal-link behavior can be
     // affected by added tracking params. Also canonicalize job URLs so the app
     // receives the simplest possible path.
     if (isLinkedInHost(parsed.hostname)) {
+      if (iosSafeLinkedIn) {
+        return toLinkedInIosSafeUrl(parsed);
+      }
       return toCanonicalLinkedInJobUrl(parsed);
     }
 
