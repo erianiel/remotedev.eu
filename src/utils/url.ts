@@ -1,15 +1,47 @@
 const UTM_SOURCE = "remotedev.eu";
 
+function hasScheme(url: string) {
+  return /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url);
+}
+
+function normalizeExternalUrl(url: string) {
+  const trimmed = url.trim();
+  if (trimmed.startsWith("//")) {
+    return `https:${trimmed}`;
+  }
+
+  if (hasScheme(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed.replace(/^\/+/, "")}`;
+}
+
+function isLinkedInHost(hostname: string) {
+  return (
+    hostname === "linkedin.com" ||
+    hostname.endsWith(".linkedin.com") ||
+    hostname === "lnkd.in"
+  );
+}
+
 export function withUtmSource(url: string, source = UTM_SOURCE) {
-  const hashIndex = url.indexOf("#");
-  const hash = hashIndex >= 0 ? url.slice(hashIndex) : "";
-  const withoutHash = hashIndex >= 0 ? url.slice(0, hashIndex) : url;
-  const queryIndex = withoutHash.indexOf("?");
-  const base = queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
-  const query = queryIndex >= 0 ? withoutHash.slice(queryIndex + 1) : "";
-  const searchParams = new URLSearchParams(query);
+  try {
+    const parsed = new URL(normalizeExternalUrl(url));
 
-  searchParams.set("utm_source", source);
+    // Keep LinkedIn links unchanged because iOS universal-link behavior can be
+    // affected by added tracking params.
+    if (isLinkedInHost(parsed.hostname)) {
+      return parsed.toString();
+    }
 
-  return `${base}?${searchParams.toString()}${hash}`;
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return parsed.toString();
+    }
+
+    parsed.searchParams.set("utm_source", source);
+    return parsed.toString();
+  } catch {
+    return url;
+  }
 }

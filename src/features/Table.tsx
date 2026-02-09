@@ -18,6 +18,7 @@ import TableHeader from "./TableHeader";
 import { useFacetContext } from "./Facet";
 import TableSkeletonRows from "./TableSkeletonRows";
 import { withUtmSource } from "../utils/url";
+import { isIOSDevice } from "../utils/platform";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,6 +63,7 @@ function Table() {
     selectedItems,
   );
   const isMobile = useIsMobile(768);
+  const isIOS = isIOSDevice();
   const columnHelper = createColumnHelper<Job>();
 
   const toggleSort = useCallback(() => {
@@ -89,8 +91,8 @@ function Table() {
           return (
             <a
               href={withUtmSource(info.row.original.url)}
-              target="_blank"
-              rel="noopener noreferrer"
+              target={isIOS ? "_self" : "_blank"}
+              rel={isIOS ? undefined : "noopener noreferrer"}
               className={`font-medium border-b cursor-pointer`}
             >
               {title}
@@ -166,7 +168,7 @@ function Table() {
           ]
         : []),
     ],
-    [columnHelper, isMobile, toggleSort],
+    [columnHelper, isIOS, isMobile, toggleSort],
   );
 
   const table = useReactTable<Job>({
