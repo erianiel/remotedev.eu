@@ -11,6 +11,7 @@ const ALLOWED_ORIGINS = [
 const DEFAULT_PAGE_SIZE = 10;
 const ALLOWED_PAGE_SIZES = [10, 20, 50];
 const SORT_WHITELIST = new Set(["created_at", "title", "company", "location"]);
+const FILTER_WHITELIST = ["company", "country"] as const;
 
 // Type definitions
 type SortDirection = "asc" | "desc";
@@ -63,6 +64,26 @@ function validateSort(sortParam: string): [string, SortDirection] | null {
   return [sortBy, sortDir];
 }
 
+function parseFilters(url: URL): Record<string, string[]> {
+  const filters: Record<string, string[]> = {};
+
+  for (const filterName of FILTER_WHITELIST) {
+    const value = url.searchParams.get(filterName);
+    if (value) {
+      // Split by comma and trim each value
+      const values = value
+        .split(",")
+        .map((v) => v.trim())
+        .filter((v) => v.length > 0);
+      if (values.length > 0) {
+        filters[filterName] = values;
+      }
+    }
+  }
+
+  return filters;
+}
+
 // Main request handler
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin") ?? "";
@@ -81,14 +102,14 @@ Deno.serve(async (req) => {
     // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     if (!supabase) {
       return createJsonResponse(
         { error: "Internal Server Error" },
         500,
-        origin
+        origin,
       );
     }
 
@@ -96,7 +117,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const page = Number(url.searchParams.get("page") || "1");
     const pageSize = Number(
-      url.searchParams.get("pageSize") || DEFAULT_PAGE_SIZE
+      url.searchParams.get("pageSize") || DEFAULT_PAGE_SIZE,
     );
 
     // Validate page size
@@ -111,10 +132,13 @@ Deno.serve(async (req) => {
       return createJsonResponse(
         { error: "Invalid sort parameter" },
         400,
-        origin
+        origin,
       );
     }
     const [sortBy, sortDir] = sortValidation;
+
+    // Parse filters
+    const filters = parseFilters(url);
 
     // Calculate pagination range
     const from = (page - 1) * pageSize;
@@ -123,15 +147,29 @@ Deno.serve(async (req) => {
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 15);
 
-    // Fetch data from Supabase
-    const { data, error, count } = await supabase
+    // Build query with optional filters
+    let query = supabase
       .from("jobs")
       .select("title,url,company,country,location,created_at", {
         count: "exact",
       })
-      .gte("created_at", twoWeeksAgo.toISOString())
+      .gte("created_at", twoWeeksAgo.toISOString());
+
+    // Apply filters if present
+    if (filters.country && filters.country.length > 0) {
+      query = query.in("country", filters.country);
+    }
+    if (filters.company && filters.company.length > 0) {
+      query = query.in("company", filters.company);
+    }
+
+    // Apply sorting and pagination
+    query = query
       .order(sortBy, { ascending: sortDir === "asc" })
       .range(from, to);
+
+    // Fetch data from Supabase
+    const { data, error, count } = await query;
 
     if (error) {
       return createJsonResponse({ error }, 500, origin);

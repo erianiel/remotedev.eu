@@ -6,3 +6,13 @@ export type Job = {
   location?: string;
   created_at?: Date;
 };
+
+export type FilterMenuItem = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+export type FilterMenuType = {
+  filter: string;
+};

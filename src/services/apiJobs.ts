@@ -5,6 +5,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 export async function getJobs(options: {
   pagination: PaginationState;
   sorting: SortingState;
+  filters: Record<string, string[]>;
   signal: AbortSignal;
 }) {
   const page = options.pagination.pageIndex + 1;
@@ -18,6 +19,13 @@ export async function getJobs(options: {
   baseUrl.searchParams.set("pageSize", String(pageSize));
   baseUrl.searchParams.set("sort", sort);
 
+  // Add filters as comma-separated values
+  Object.entries(options.filters).forEach(([key, values]) => {
+    if (values.length > 0) {
+      baseUrl.searchParams.set(key, values.join(","));
+    }
+  });
+
   const response = await fetch(baseUrl, {
     method: "GET",
     headers: {
@@ -29,6 +37,24 @@ export async function getJobs(options: {
   if (!response.ok) {
     throw new Error("Failed to fetch jobs");
   }
+
+  return response.json();
+}
+
+export async function getAggregations(options: { filter: string; q?: string }) {
+  const baseUrl = new URL(`${SUPABASE_URL}/functions/v1/aggregations`);
+  baseUrl.searchParams.set("filter", String(options.filter));
+
+  if (options.q) {
+    baseUrl.searchParams.set("q", String(options.q));
+  }
+
+  const response = await fetch(baseUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
   return response.json();
 }

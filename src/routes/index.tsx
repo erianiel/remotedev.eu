@@ -16,6 +16,8 @@ export const Route = createFileRoute("/")({
           ? 10
           : pageSizeParsed,
       sort: sortParam,
+      country: typeof search.country === "string" ? search.country : undefined,
+      company: typeof search.company === "string" ? search.company : undefined,
     };
   },
   component: AppLayout,
