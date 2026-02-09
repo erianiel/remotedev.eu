@@ -204,6 +204,8 @@ function Table() {
 
   const showSkeleton =
     isLoading || (isFetching && isQueryKeyChanging);
+  const hasNoResults =
+    !showSkeleton && (jobs?.data?.length ?? 0) === 0;
 
   return (
     <div className="rounded-lg overflow-hidden border border-stone-900 shadow-md">
@@ -225,6 +227,15 @@ function Table() {
                 columns={table.getVisibleLeafColumns()}
                 rowCount={pagination.pageSize}
               />
+            ) : hasNoResults ? (
+              <tr>
+                <td
+                  colSpan={table.getVisibleLeafColumns().length}
+                  className="p-6 text-center text-stone-600"
+                >
+                  No results found.
+                </td>
+              </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} row={row} />

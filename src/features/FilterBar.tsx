@@ -8,7 +8,7 @@ const FILTERS = [
 
 export default function FilterBar() {
   return (
-    <div className="self-end flex gap-2">
+    <div className="w-full flex flex-col gap-2 md:w-auto md:flex-row md:self-end">
       {FILTERS.map(({ key, label }) => (
         <FacetTrigger key={key} filterId={key}>
           <FilterButton>{label}</FilterButton>

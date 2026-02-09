@@ -25,7 +25,7 @@ function FilterButton({
           : isOpenMenu
             ? "border-stone-400"
             : "border-stone-900"
-      } rounded-lg py-1 px-2 w-52 border shadow-sm text-sm cursor-pointer active:shadow-md transition-colors`}
+      } rounded-lg py-1 px-2 w-full md:w-52 border shadow-sm text-sm cursor-pointer active:shadow-md transition-colors`}
       onClick={onClick}
     >
       <div className="flex justify-between items-center gap-2">
@@ -41,7 +41,7 @@ function FilterButton({
           {onClear && (
             <button
               onClick={onClear}
-              className="flex items-center justify-center w-5 h-5 rounded text-amber-700 hover:bg-amber-200 hover:text-amber-900 transition-colors"
+              className="flex items-center justify-center w-5 h-5 rounded text-current hover:bg-rose-100 hover:text-rose-600 transition-colors"
               title="Clear filter"
               type="button"
               aria-label="Clear filter"
@@ -52,7 +52,7 @@ function FilterButton({
                 viewBox="0 0 12 12"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2.5"
+                strokeWidth="2"
                 strokeLinecap="round"
               >
                 <path d="M2 2l8 8M10 2l-8 8" />
