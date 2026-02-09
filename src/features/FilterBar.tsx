@@ -1,24 +1,21 @@
-import Facet from "./Facet";
+import { FacetProvider, FacetTrigger } from "./Facet";
 import FilterButton from "./FilterButton";
 
-const filters = [
+const FILTERS = [
   { key: "country", label: "Country" },
   { key: "company", label: "Company" },
-];
+] as const;
 
-function FilterBar() {
+export default function FilterBar() {
   return (
-    <div className="self-end flex gap-2">
-      {filters.map(({ key, label }) => (
-        <Facet key={key}>
-          <Facet.Open opens={key}>
+    <FacetProvider>
+      <div className="self-end flex gap-2">
+        {FILTERS.map(({ key, label }) => (
+          <FacetTrigger key={key} filterId={key}>
             <FilterButton>{label}</FilterButton>
-          </Facet.Open>
-          <Facet.Menu filter={key} />
-        </Facet>
-      ))}
-    </div>
+          </FacetTrigger>
+        ))}
+      </div>
+    </FacetProvider>
   );
 }
-
-export default FilterBar;
