@@ -25,14 +25,24 @@ function isLinkedInHost(hostname: string) {
   );
 }
 
+function toCanonicalLinkedInJobUrl(parsed: URL) {
+  const match = parsed.pathname.match(/\/jobs\/view\/(\d+)/);
+  if (!match) {
+    return parsed.toString();
+  }
+
+  return `https://www.linkedin.com/jobs/view/${match[1]}/`;
+}
+
 export function withUtmSource(url: string, source = UTM_SOURCE) {
   try {
     const parsed = new URL(normalizeExternalUrl(url));
 
     // Keep LinkedIn links unchanged because iOS universal-link behavior can be
-    // affected by added tracking params.
+    // affected by added tracking params. Also canonicalize job URLs so the app
+    // receives the simplest possible path.
     if (isLinkedInHost(parsed.hostname)) {
-      return parsed.toString();
+      return toCanonicalLinkedInJobUrl(parsed);
     }
 
     if (!["http:", "https:"].includes(parsed.protocol)) {
