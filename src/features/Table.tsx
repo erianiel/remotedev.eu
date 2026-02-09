@@ -17,6 +17,7 @@ import TableRow from "./TableRow";
 import TableHeader from "./TableHeader";
 import { useFacetContext } from "./Facet";
 import TableSkeletonRows from "./TableSkeletonRows";
+import { withUtmSource } from "../utils/url";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -87,7 +88,7 @@ function Table() {
           const title = info.getValue();
           return (
             <a
-              href={info.row.original.url}
+              href={withUtmSource(info.row.original.url)}
               target="_blank"
               rel="noopener noreferrer"
               className={`font-medium border-b cursor-pointer`}
@@ -202,10 +203,8 @@ function Table() {
     }
   }, [isFetching, isLoading, querySignature]);
 
-  const showSkeleton =
-    isLoading || (isFetching && isQueryKeyChanging);
-  const hasNoResults =
-    !showSkeleton && (jobs?.data?.length ?? 0) === 0;
+  const showSkeleton = isLoading || (isFetching && isQueryKeyChanging);
+  const hasNoResults = !showSkeleton && (jobs?.data?.length ?? 0) === 0;
 
   return (
     <div className="rounded-lg overflow-hidden border border-stone-900 shadow-md">
@@ -237,9 +236,9 @@ function Table() {
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} row={row} />
-              ))
+              table
+                .getRowModel()
+                .rows.map((row) => <TableRow key={row.id} row={row} />)
             )}
           </tbody>
           <TableFooter
