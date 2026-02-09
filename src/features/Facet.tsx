@@ -91,10 +91,21 @@ export function FacetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const commitDraft = useCallback((filterId: string, draftItems: string[]) => {
-    setSelectedItems((prev) => ({
-      ...prev,
-      [filterId]: draftItems,
-    }));
+    setSelectedItems((prev) => {
+      const currentItems = prev[filterId] || [];
+      const isSameSelection =
+        currentItems.length === draftItems.length &&
+        currentItems.every((item, index) => item === draftItems[index]);
+
+      // Avoid state updates when the draft has not changed.
+      // This prevents unnecessary URL/query updates when opening/closing a menu.
+      if (isSameSelection) return prev;
+
+      return {
+        ...prev,
+        [filterId]: draftItems,
+      };
+    });
   }, []);
 
   const value = useMemo(
