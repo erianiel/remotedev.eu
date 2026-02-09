@@ -5,6 +5,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 export async function getJobs(options: {
   pagination: PaginationState;
   sorting: SortingState;
+  filters: Record<string, string[]>;
   signal: AbortSignal;
 }) {
   const page = options.pagination.pageIndex + 1;
@@ -17,6 +18,13 @@ export async function getJobs(options: {
   baseUrl.searchParams.set("page", String(page));
   baseUrl.searchParams.set("pageSize", String(pageSize));
   baseUrl.searchParams.set("sort", sort);
+
+  // Add filters as comma-separated values
+  Object.entries(options.filters).forEach(([key, values]) => {
+    if (values.length > 0) {
+      baseUrl.searchParams.set(key, values.join(","));
+    }
+  });
 
   const response = await fetch(baseUrl, {
     method: "GET",

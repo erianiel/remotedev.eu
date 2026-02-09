@@ -15,6 +15,7 @@ import { useIsMobile } from "../hooks/useIsMobile";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import TableRow from "./TableRow";
 import TableHeader from "./TableHeader";
+import { useFacetContext } from "./Facet";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -26,6 +27,7 @@ declare module "@tanstack/react-table" {
 function Table() {
   const { pageSize, sort } = useSearch({ from: "/" });
   const navigate = useNavigate({ from: "/" });
+  const { selectedItems } = useFacetContext();
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: pageSize ?? 10,
@@ -47,7 +49,16 @@ function Table() {
     }));
   }, [pageSize]);
 
-  const { jobs, error, isLoading } = useJobs(pagination, sorting);
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [selectedItems]);
+
+  const { jobs, error, isLoading } = useJobs(
+    pagination,
+    sorting,
+    selectedItems,
+  );
   const isMobile = useIsMobile(768);
   const columnHelper = createColumnHelper<Job>();
 
@@ -153,7 +164,7 @@ function Table() {
           ]
         : []),
     ],
-    [columnHelper, isMobile, toggleSort]
+    [columnHelper, isMobile, toggleSort],
   );
 
   const table = useReactTable<Job>({

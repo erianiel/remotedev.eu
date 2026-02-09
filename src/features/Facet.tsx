@@ -11,6 +11,7 @@ import {
   type ReactNode,
   type ReactElement,
 } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useAggregations } from "../hooks/useAggregations";
 import SearchBar from "../ui/SearchBar";
 import Checkbox from "../ui/Checkbox";
@@ -21,6 +22,7 @@ type FacetContextValue = {
   selectedItems: Record<string, string[]>;
   toggleItem: (filterId: string, itemId: string) => void;
   clearFilter: (filterId: string) => void;
+  commitDraft: (filterId: string, draftItems: string[]) => void;
 };
 
 type Position = {
@@ -33,7 +35,7 @@ type Position = {
 
 const FacetContext = createContext<FacetContextValue | undefined>(undefined);
 
-const useFacetContext = () => {
+export const useFacetContext = () => {
   const context = useContext(FacetContext);
   if (!context) {
     throw new Error("Facet components must be used within FacetProvider");
@@ -42,10 +44,50 @@ const useFacetContext = () => {
 };
 
 export function FacetProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate({ from: "/" });
+  const searchParams = useSearch({ from: "/" });
+
+  // Parse initial filters from URL
+  const getInitialFilters = useCallback(() => {
+    const filters: Record<string, string[]> = {};
+    if (searchParams.country) {
+      filters.country = searchParams.country.split(",").map((v) => v.trim());
+    }
+    if (searchParams.company) {
+      filters.company = searchParams.company.split(",").map((v) => v.trim());
+    }
+    return filters;
+  }, [searchParams.country, searchParams.company]);
+
   const [openId, setOpenId] = useState("");
-  const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {},
-  );
+  const [selectedItems, setSelectedItems] =
+    useState<Record<string, string[]>>(getInitialFilters);
+
+  // Sync filters to URL when they change
+  useEffect(() => {
+    navigate({
+      search: (prev) => {
+        const newSearch = { ...prev };
+
+        // Update or remove country filter
+        if (selectedItems.country && selectedItems.country.length > 0) {
+          newSearch.country = selectedItems.country.join(",");
+        } else {
+          delete newSearch.country;
+        }
+
+        // Update or remove company filter
+        if (selectedItems.company && selectedItems.company.length > 0) {
+          newSearch.company = selectedItems.company.join(",");
+        } else {
+          delete newSearch.company;
+        }
+
+        return newSearch;
+      },
+      replace: true,
+    });
+  }, [selectedItems, navigate]);
 
   const toggleItem = useCallback((filterId: string, itemId: string) => {
     setSelectedItems((prev) => {
@@ -68,9 +110,23 @@ export function FacetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const commitDraft = useCallback((filterId: string, draftItems: string[]) => {
+    setSelectedItems((prev) => ({
+      ...prev,
+      [filterId]: draftItems,
+    }));
+  }, []);
+
   const value = useMemo(
-    () => ({ openId, setOpenId, selectedItems, toggleItem, clearFilter }),
-    [openId, selectedItems, toggleItem, clearFilter],
+    () => ({
+      openId,
+      setOpenId,
+      selectedItems,
+      toggleItem,
+      clearFilter,
+      commitDraft,
+    }),
+    [openId, selectedItems, toggleItem, clearFilter, commitDraft],
   );
 
   return (
@@ -145,18 +201,38 @@ function FacetMenu({
   filterLabel: string;
   triggerElement: HTMLElement | null;
 }) {
-  const { selectedItems, toggleItem, clearFilter, setOpenId } =
-    useFacetContext();
+  const { selectedItems, commitDraft, setOpenId } = useFacetContext();
   const menuRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const scrollPositionRef = useRef(0);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [position, setPosition] = useState<Position | null>(null);
+
+  // Draft state - only commits when dropdown closes
+  const [draftItems, setDraftItems] = useState<string[]>(
+    selectedItems[filterId] || [],
+  );
+
+  // Use ref to track latest draft without triggering effects
+  const draftItemsRef = useRef<string[]>(draftItems);
+  useEffect(() => {
+    draftItemsRef.current = draftItems;
+  }, [draftItems]);
+
+  // Debounce search input to avoid excessive API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const { aggregations, isLoading, error } = useAggregations(
     filterId,
-    search || undefined,
+    debouncedSearch || undefined,
     true,
   );
 
@@ -217,6 +293,20 @@ function FacetMenu({
     }
   });
 
+  // Commit draft when menu closes/unmounts
+  const handleClose = useCallback(() => {
+    commitDraft(filterId, draftItemsRef.current);
+    setOpenId("");
+  }, [commitDraft, filterId, setOpenId]);
+
+  // Commit draft on unmount only (not on every draftItems change)
+  useEffect(() => {
+    return () => {
+      commitDraft(filterId, draftItemsRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commitDraft, filterId]); // Intentionally not including draftItemsRef
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -224,27 +314,32 @@ function FacetMenu({
         !menuRef.current?.contains(target) &&
         !triggerElement?.contains(target)
       ) {
-        setOpenId("");
+        handleClose();
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [setOpenId, triggerElement]);
+  }, [handleClose, triggerElement]);
 
-  const handleItemToggle = useCallback(
-    (itemId: string) => {
-      if (listRef.current) {
-        scrollPositionRef.current = listRef.current.scrollTop;
-      }
-      toggleItem(filterId, itemId);
-    },
-    [filterId, toggleItem],
-  );
+  const handleItemToggle = useCallback((itemLabel: string) => {
+    if (listRef.current) {
+      scrollPositionRef.current = listRef.current.scrollTop;
+    }
+    setDraftItems((prev) => {
+      const isSelected = prev.includes(itemLabel);
+      return isSelected
+        ? prev.filter((label) => label !== itemLabel)
+        : [...prev, itemLabel];
+    });
+  }, []);
+
+  const handleClearDraft = useCallback(() => {
+    setDraftItems([]);
+  }, []);
 
   const items = aggregations?.data || [];
-  const selectedItemIds = selectedItems[filterId] || [];
-  const hasSelection = selectedItemIds.length > 0;
+  const hasSelection = draftItems.length > 0;
 
   if (!position) return null;
 
@@ -297,8 +392,8 @@ function FacetMenu({
             >
               <Checkbox
                 label={item.label}
-                checked={selectedItemIds.includes(item.id)}
-                onChange={() => handleItemToggle(item.id)}
+                checked={draftItems.includes(item.label)}
+                onChange={() => handleItemToggle(item.label)}
               />
             </li>
           ))
@@ -307,11 +402,9 @@ function FacetMenu({
 
       {hasSelection && (
         <div className="p-2 border-t border-stone-200 bg-gray-50 text-xs font-medium rounded-b-lg flex items-center justify-between">
-          <span className="text-stone-700">
-            {selectedItemIds.length} selected
-          </span>
+          <span className="text-stone-700">{draftItems.length} selected</span>
           <button
-            onClick={() => clearFilter(filterId)}
+            onClick={handleClearDraft}
             className="text-amber-600 hover:text-amber-700 hover:underline transition-colors"
             type="button"
           >
