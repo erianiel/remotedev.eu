@@ -15,7 +15,7 @@ import { useIsMobile } from "../hooks/useIsMobile";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import TableRow from "./TableRow";
 import TableHeader from "./TableHeader";
-import { useFacetContext } from "./Facet";
+import { useFacetContext } from "./facet-context";
 import TableSkeletonRows from "./TableSkeletonRows";
 import { withUtmSource } from "../utils/url";
 import { isIOSDevice } from "../utils/platform";

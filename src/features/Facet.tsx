@@ -1,6 +1,4 @@
 import {
-  createContext,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -15,15 +13,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useAggregations } from "../hooks/useAggregations";
 import SearchBar from "../ui/SearchBar";
 import Checkbox from "../ui/Checkbox";
-
-type FacetContextValue = {
-  openId: string;
-  setOpenId: (id: string) => void;
-  selectedItems: Record<string, string[]>;
-  toggleItem: (filterId: string, itemId: string) => void;
-  clearFilter: (filterId: string) => void;
-  commitDraft: (filterId: string, draftItems: string[]) => void;
-};
+import { FacetContext, useFacetContext } from "./facet-context";
 
 type Position = {
   top: number;
@@ -31,16 +21,6 @@ type Position = {
   width: number;
   maxHeight: number;
   placement: "bottom" | "top";
-};
-
-const FacetContext = createContext<FacetContextValue | undefined>(undefined);
-
-export const useFacetContext = () => {
-  const context = useContext(FacetContext);
-  if (!context) {
-    throw new Error("Facet components must be used within FacetProvider");
-  }
-  return context;
 };
 
 export function FacetProvider({ children }: { children: ReactNode }) {
@@ -304,8 +284,7 @@ function FacetMenu({
     return () => {
       commitDraft(filterId, draftItemsRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commitDraft, filterId]); // Intentionally not including draftItemsRef
+  }, [commitDraft, filterId]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
