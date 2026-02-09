@@ -6,7 +6,7 @@ import {
   type RowData,
   type SortingState,
 } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useJobs } from "../hooks/useJobs";
 import TableFooter from "./TableFooter";
 import type { Job } from "../types";
@@ -16,6 +16,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import TableRow from "./TableRow";
 import TableHeader from "./TableHeader";
 import { useFacetContext } from "./Facet";
+import TableSkeletonRows from "./TableSkeletonRows";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -54,7 +55,7 @@ function Table() {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [selectedItems]);
 
-  const { jobs, error, isLoading } = useJobs(
+  const { jobs, error, isLoading, isFetching } = useJobs(
     pagination,
     sorting,
     selectedItems,
@@ -183,15 +184,35 @@ function Table() {
     },
   });
 
+  const querySignature = useMemo(
+    () =>
+      JSON.stringify({
+        pagination,
+        sorting,
+        selectedItems,
+      }),
+    [pagination, sorting, selectedItems],
+  );
+  const lastQuerySignatureRef = useRef<string | null>(null);
+  const isQueryKeyChanging = lastQuerySignatureRef.current !== querySignature;
+
+  useEffect(() => {
+    if (!isLoading && !isFetching) {
+      lastQuerySignatureRef.current = querySignature;
+    }
+  }, [isFetching, isLoading, querySignature]);
+
+  const showSkeleton =
+    isLoading || (isFetching && isQueryKeyChanging);
+
   return (
     <div className="rounded-lg overflow-hidden border border-stone-900 shadow-md">
-      {isLoading && <h3 className="p-6">Loading...</h3>}
       {error && (
         <h3 className="p-6 text-rose-500 font-medium">
           An error has occurred!
         </h3>
       )}
-      {!isLoading && !error && (
+      {!error && (
         <table className="table-fixed w-full border-collapse">
           <thead className="bg-amber-400">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -199,9 +220,16 @@ function Table() {
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} row={row} />
-            ))}
+            {showSkeleton ? (
+              <TableSkeletonRows
+                columns={table.getVisibleLeafColumns()}
+                rowCount={pagination.pageSize}
+              />
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} row={row} />
+              ))
+            )}
           </tbody>
           <TableFooter
             pageSize={table.getState().pagination.pageSize}

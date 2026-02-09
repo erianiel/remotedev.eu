@@ -9,6 +9,7 @@ export function useJobs(
 ) {
   const {
     isLoading,
+    isFetching,
     data: jobs,
     error,
   } = useQuery({
@@ -17,5 +18,5 @@ export function useJobs(
     placeholderData: keepPreviousData,
   });
 
-  return { isLoading, jobs, error };
+  return { isLoading, isFetching, jobs, error };
 }
