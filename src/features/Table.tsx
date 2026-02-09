@@ -17,8 +17,7 @@ import TableRow from "./TableRow";
 import TableHeader from "./TableHeader";
 import { useFacetContext } from "./facet-context";
 import TableSkeletonRows from "./TableSkeletonRows";
-import { withOutboundTracking } from "../utils/url";
-import { isIOSDevice } from "../utils/platform";
+import { withUtmSource } from "../utils/url";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -63,7 +62,6 @@ function Table() {
     selectedItems,
   );
   const isMobile = useIsMobile(768);
-  const isIOS = isIOSDevice();
   const columnHelper = createColumnHelper<Job>();
 
   const toggleSort = useCallback(() => {
@@ -90,9 +88,7 @@ function Table() {
           const title = info.getValue();
           return (
             <a
-              href={withOutboundTracking(info.row.original.url, {
-                iosSafeLinkedIn: isIOS,
-              })}
+              href={withUtmSource(info.row.original.url)}
               target="_blank"
               rel="noopener noreferrer"
               className={`font-medium border-b cursor-pointer`}
@@ -170,7 +166,7 @@ function Table() {
           ]
         : []),
     ],
-    [columnHelper, isIOS, isMobile, toggleSort],
+    [columnHelper, isMobile, toggleSort],
   );
 
   const table = useReactTable<Job>({
