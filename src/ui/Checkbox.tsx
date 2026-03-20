@@ -18,7 +18,7 @@ export default function Checkbox({
   const id = useId();
   const isControlled = typeof checked === "boolean";
   const [internal, setInternal] = React.useState<boolean>(
-    defaultChecked ?? false
+    defaultChecked ?? false,
   );
   const isChecked = isControlled ? (checked as boolean) : internal;
 
@@ -30,7 +30,7 @@ export default function Checkbox({
   return (
     <label
       htmlFor={id}
-      className="group inline-flex items-center gap-2 p-2 w-full rounded-md cursor-pointer select-none"
+      className="group inline-flex w-full items-center gap-2 rounded-md p-2 cursor-pointer select-none"
     >
       {/* Real checkbox (accessible) */}
       <input
@@ -43,7 +43,7 @@ export default function Checkbox({
 
       {/* Custom checkbox UI */}
       <span
-        className={`grid h-5 w-5 place-items-center rounded-md border transition-colors duration-150 ${
+        className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-colors duration-150 ${
           isChecked
             ? "bg-amber-400 border-amber-400"
             : "bg-white border-slate-300"
@@ -66,7 +66,7 @@ export default function Checkbox({
       </span>
 
       {/* Label text */}
-      <span className="text-xs font-medium tracking-wide text-stone-800">
+      <span className="min-w-0 flex-1 text-xs font-medium tracking-wide text-stone-800">
         {label}
       </span>
     </label>
